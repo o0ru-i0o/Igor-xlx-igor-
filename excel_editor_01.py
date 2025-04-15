@@ -54,7 +54,24 @@ def edit_excel_file_mass():
     ws = wb[sheet_names[0]];
 
     mass_number = ws[9];## 9行目を取得
-    print(f"質量数：{mass_number}");
+    print(type(mass_number));    # 取得した行の型を表示
+    #print(f"質量数：{mass_number}");
+
+    mass_number_edited = list(mass_number);    # セルの値を取得
+
+    #mass_number_edited = [i for i in mass_number if type(i) == int];    # int型だけ残す
+    print(mass_number_edited);    # int型の質量数を表示
+    print(type(mass_number_edited));
+    print(f"{mass_number_edited[0]}");
+
+    """
+    for cell in mass_number:
+        print(cell.value);
+        #if cell.value is not None:
+            #print(cell.value);
+            #cell.value = cell.value * 2;    # セルの値を2倍にする
+            #print(cell.value);
+    """
 
 
 def save_excel_file():
