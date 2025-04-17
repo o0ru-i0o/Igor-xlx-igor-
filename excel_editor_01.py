@@ -5,11 +5,9 @@ import tkinter;
 import tkinter.filedialog;
 import pandas;
 import pyperclip
+import csv
 
-
-# Tkinterのウィンドウを非表示にする
-root = tkinter.Tk();
-root.withdraw();
+import re
 
 #グローバル変数の定義
 wb = None;
@@ -18,17 +16,110 @@ ws = None;
 file_path = None;
 mass_number = None;
 
+
+def csv_to_excel():
+    global wb;
+    global sheet_names;
+    global ws;
+    global file_path;
+
+    # CSVファイルの読み込み
+    # ファイルダイアログを表示してCSVファイルパスを取得
+    csv_file_path = tkinter.filedialog.askopenfilename(
+        title="CSVファイルを選択してください",
+        filetypes=[("CSV files", "*.csv")]
+    )
+    excel_file_path = csv_file_path.replace(".csv",".xlsx")
+    file_path = excel_file_path;    # グローバル変数にファイルパスを格納
+
+
+    if csv_file_path:
+        csv_file_path = csv_file_path.replace("C:", "");
+        csv_file_path = csv_file_path.replace("D:", "");
+
+
+        wb = openpyxl.Workbook();
+        print("選択されたファイル：", csv_file_path);
+        ws = wb.active
+
+        
+
+        with open(csv_file_path) as f:
+            reader = csv.reader(f, delimiter=',')
+            for row in reader:
+                ws.append(row)
+
+        # 出力先のExcelファイル名を生成
+        excel_file_path = csv_file_path.replace(".csv","_convert.xlsx")
+
+
+        wb.save(excel_file_path)
+    
+    else:
+        print("CSVファイルが選択されませんでした。")
+
+
+
+
+
+
+
+
+
+def csv_to_excel_test():
+    global wb;
+    global sheet_names;
+    global ws;
+    global file_path;
+
+    # ファイルダイアログを表示してCSVファイルパスを取得
+    csv_file_path = tkinter.filedialog.askopenfilename(
+        title="CSVファイルを選択してください",
+        filetypes=[("CSV files", "*.csv")]
+    )
+
+    # ファイルが選択された場合のみ処理
+    if csv_file_path:
+        # 出力先のExcelファイル名を生成
+        excel_file_path = os.path.splitext(csv_file_path)[0] + "_converted.xlsx"
+
+        # CSVファイルの読み込みと置換
+        with open(csv_file_path, 'r', newline='', encoding='utf-8') as file, \
+                open('file_out.csv', 'w', newline='', encoding='utf-8') as fileout:
+            text = re.sub(r'\s* ', ',', file.read())
+            print(text, file=fileout)
+            print('置換完了')
+
+        # CSVファイルの読み込み
+        data = pandas.read_csv('file_out.csv', encoding='utf-8')
+
+        # Excel形式で出力
+        data.to_excel(excel_file_path, encoding='utf-8', index=False)
+
+        print(f'CSV > Excel変換完了: {excel_file_path}')
+
+        file_path = excel_file_path;    # グローバル変数にファイルパスを格納
+    else:
+        print("CSVファイルが選択されませんでした。")
+
+# Tkinterのウィンドウを非表示にする
+root = tkinter.Tk();
+root.withdraw();
+
+
 def read_excel_file():
     global wb;
     global sheet_names;
     global ws;
     global file_path;
 
+    #"""
     # ファイルダイアログを表示してファイルパスを取得
     file_path = tkinter.filedialog.askopenfilename(
         title="Excelファイルを選択してください",
         filetypes=[("Excel files", "*.xlsx *.xlsm")]
     )
+    #"""
 
     # ファイルが選択された場合のみ処理
     if file_path:
