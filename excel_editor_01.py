@@ -4,6 +4,8 @@ import os.path;
 import tkinter;
 import tkinter.filedialog;
 import pandas;
+import pyperclip
+
 
 # Tkinterのウィンドウを非表示にする
 root = tkinter.Tk();
@@ -59,9 +61,27 @@ def edit_excel_file_mass():
     global file_path;
     global mass_number;
 
+    mass_number_row = 9;
+    header_end_row = 39;
+
+    
+
     ws = wb[sheet_names[0]];
 
-    mass_number = ws[9];## 9行目を取得
+    col = ws["A"];    # A列を取得
+    for cell in col:
+        if cell.value == "測定質量数              : ":
+            mass_number_row = cell.row;    # 行番号を取得
+            print(f"質量数の行番号：{mass_number_row}");    # 行番号を表示
+        if cell.value == "測定回数":
+            header_end_row = cell.row;
+            print(f"ヘッダーの終了行番号：{header_end_row}");    # 行番号を表示 
+            break;    # ループを抜ける
+
+
+    
+
+    mass_number = ws[mass_number_row];# ラベル行目を取得
     print(type(mass_number));    # 取得した行の型を表示
     #print(f"質量数：{mass_number}");
 
@@ -77,7 +97,7 @@ def edit_excel_file_mass():
     mass_number_excerpted = [cell.value for cell in mass_number_listed if type(cell.value) == int];
     print(f"{mass_number_excerpted=}");    # int型の質量数を表示
 
-    ws.delete_rows(1, 39);    # 1行目から39行目まで削除
+    ws.delete_rows(1, header_end_row);    # 1行目から39行目まで削除
     ws.delete_cols(1,1);
     ws.delete_cols(2,4);
 
@@ -122,7 +142,7 @@ def excel_to_csv():
     global file_path;
 
     excel_file = os.path.dirname(file_path) + "/output/edited_" + os.path.basename(file_path)
-    csv_file = os.path.dirname(file_path) + "/output/edited_" + os.path.basename(file_path) + "CSVver"
+    csv_file = os.path.dirname(file_path) + "/output/edited_" + os.path.basename(file_path).replace('.xlsx', '.csv').replace('.xlsm', '.csv')
 
     
     # Excelファイルを読み込む
@@ -133,3 +153,14 @@ def excel_to_csv():
 
     tkinter.Tk().withdraw()
     tkinter.messagebox.showinfo('メッセージ', "読み込んだxlsxをCSVに変換しました！/n(「output」フォルダに保存されています)")
+
+def copy_command_for_Igor():
+
+    csv_file_path_with_collon = os.path.dirname(file_path) + "/output/edited_" + os.path.basename(file_path).replace('.xlsx', '.csv').replace('.xlsm', '.csv')
+    csv_file_path_with_collon = csv_file_path_with_collon.replace(":", "")
+    csv_file_path_with_collon = csv_file_path_with_collon.replace("/", ":")
+    print(f"{csv_file_path_with_collon=}");
+    
+    # クリップボードにコピー
+    #pyperclip.copy('LoadWave/J/D/W/A/E=1/K=0 "D:DQM:学習:openpyxl:インスト:pythonOpenpyxlのまとめ:SelfCreate:Igor提携:output:edited_S1_241017_221354.csv"');
+    pyperclip.copy(f'LoadWave/J/D/W/A/E=1/K=0 "{csv_file_path_with_collon}"');
