@@ -3,7 +3,6 @@ import os;
 import os.path;
 import tkinter;
 import tkinter.filedialog;
-import pandas;
 import pyperclip
 import csv
 
@@ -17,7 +16,55 @@ file_path = None;
 mass_number = None;
 
 
-def csv_to_excel():
+import pandas
+import chardet
+import os
+import tkinter.filedialog
+
+def csv_to_excel_with_pandas():
+    #global wb;
+    #global sheet_names;
+    #global ws;
+    global file_path;
+
+    # ファイル選択
+    csv_file_path = tkinter.filedialog.askopenfilename(
+        title="CSVファイルを選んでね！",
+        filetypes=[("CSV files", "*.csv;*.CSV")]
+    )
+
+    if not csv_file_path:
+        notify_user("キャンセルされたよ〜");
+        print("キャンセルされたよ〜")
+        return
+
+    # 文字コードを自動検出
+    with open(csv_file_path, 'rb') as f:
+        raw_data = f.read()
+        result = chardet.detect(raw_data)
+        detected_encoding = result['encoding']
+        #notify_user(f"検出された文字コード：{detected_encoding}")
+        print(f"✅ 検出された文字コード：{detected_encoding}")
+
+    # pandasで読み込んで → Excelに出力！
+    try:
+        df = pandas.read_csv(csv_file_path, encoding=detected_encoding, engine='python', on_bad_lines='skip')
+
+        # 拡張子を安全に置き換え
+        filename_root, _ = os.path.splitext(csv_file_path)
+        excel_file_path = filename_root + ".xlsx"
+
+        df.to_excel(excel_file_path, index=False)
+        #notify_user(f"✅ pandasで変換完了！: {excel_file_path}")
+        print(f"✅ pandasで変換完了！: {excel_file_path}")
+    except Exception as e:
+        #notify_user(f"❌ pandasでの読み込みエラー：{e}")
+        print("❌ pandasでの読み込みエラー：", e)
+
+    file_path = excel_file_path;    # グローバル変数にファイルパスを格納
+
+
+def csv_to_excel_by_csvreader():
     global wb;
     global sheet_names;
     global ws;
@@ -57,15 +104,6 @@ def csv_to_excel():
     
     else:
         print("CSVファイルが選択されませんでした。")
-
-
-
-
-
-
-
-
-
 def csv_to_excel_test():
     global wb;
     global sheet_names;
@@ -113,13 +151,13 @@ def read_excel_file():
     global ws;
     global file_path;
 
-    #"""
+    """
     # ファイルダイアログを表示してファイルパスを取得
     file_path = tkinter.filedialog.askopenfilename(
         title="Excelファイルを選択してください",
         filetypes=[("Excel files", "*.xlsx *.xlsm")]
     )
-    #"""
+    """
 
     # ファイルが選択された場合のみ処理
     if file_path:
@@ -128,10 +166,9 @@ def read_excel_file():
         print("選択されたファイル：", file_path);
 
         sheet_names = wb.sheetnames;    # シート名のリストを取得
-
-        tkinter.Tk().withdraw()
-        tkinter.messagebox.showinfo('メッセージ', str(file_path)+' \nを読み込みます')
-
+        
+        notify_user(f"{str(file_path)}'\n を読み込みます")
+        print(f"選択されたファイル：{file_path}");    # 選択されたファイル名を表示
             
         for i, sheet_name in enumerate(sheet_names):
             ws = wb[sheet_name];    # シートを取得
@@ -141,8 +178,8 @@ def read_excel_file():
           
     else:
 
-        tkinter.Tk().withdraw()
-        tkinter.messagebox.showinfo('メッセージ', 'ファイルが選択されませんでした')
+        notify_user("ファイルが選択されませんでした")
+
         print("ファイルが選択されませんでした");
 
 def edit_excel_file_mass():
@@ -242,8 +279,11 @@ def excel_to_csv():
     # CSVファイルに書き込む
     df.to_csv(csv_file, index=False)
 
+    """
     tkinter.Tk().withdraw()
     tkinter.messagebox.showinfo('メッセージ', "読み込んだxlsxをCSVに変換しました！/n(「output」フォルダに保存されています)")
+    """
+    print("読み込んだxlsxをCSVに変換しました！ /n (「output」フォルダに保存されています)")
 
 def copy_command_for_Igor():
 
@@ -255,3 +295,14 @@ def copy_command_for_Igor():
     # クリップボードにコピー
     #pyperclip.copy('LoadWave/J/D/W/A/E=1/K=0 "D:DQM:学習:openpyxl:インスト:pythonOpenpyxlのまとめ:SelfCreate:Igor提携:output:edited_S1_241017_221354.csv"');
     pyperclip.copy(f'LoadWave/J/D/W/A/E=1/K=0 "{csv_file_path_with_collon}"');
+
+
+def notify_user(message):
+    import tkinter as tk
+    from tkinter import messagebox
+
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    messagebox.showinfo('メッセージ', message, parent=root)
+    root.destroy()

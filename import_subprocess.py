@@ -19,7 +19,7 @@ def launch_igor():
     tkinter.Tk().withdraw()
     tkinter.messagebox.showinfo('メッセージ', "Igorが起動したら，Ctrl+Vで貼り付けてEnter！")
 
-    subprocess.run  ('"C:\\Program Files\\WaveMetrics\\Igor Pro 9 Folder\\IgorBinaries_x64\\Igor64.exe" ')
+    subprocess.Popen('"C:\\Program Files\\WaveMetrics\\Igor Pro 9 Folder\\IgorBinaries_x64\\Igor64.exe" ')
 
 
 def to_clip_board_ipfFunction():

@@ -13,6 +13,7 @@ import_subprocess.to_clip_board();
 """
 #excel_editor_01.csv_to_excel_test();
 #excel_editor_01.csv_to_excel()
+excel_editor_01.csv_to_excel_with_pandas();
 
 excel_editor_01.read_excel_file();
 excel_editor_01.edit_excel_file_mass();
