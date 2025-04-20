@@ -63,7 +63,6 @@ def csv_to_excel_with_pandas():
 
     file_path = excel_file_path;    # グローバル変数にファイルパスを格納
 
-
 def csv_to_excel_by_csvreader():
     global wb;
     global sheet_names;
@@ -141,11 +140,11 @@ def csv_to_excel_test():
         print("CSVファイルが選択されませんでした。")
 
 # Tkinterのウィンドウを非表示にする
-root = tkinter.Tk();
-root.withdraw();
+#root = tkinter.Tk();
+#root.withdraw();
 
 
-def read_excel_file():
+def read_excel_file(path=None):
     global wb;
     global sheet_names;
     global ws;
@@ -184,7 +183,7 @@ def read_excel_file():
                 title="Excelファイルを選択してください",
                 filetypes=[("Excel files", "*.xlsx *.xlsm")]
             )
-            read_excel_file();
+            read_excel_file(file_path);
         else:
             tkinter.messagebox.showinfo("終了", "ファイルが選択されませんでした");
             print("ファイルが選択されませんでした");
