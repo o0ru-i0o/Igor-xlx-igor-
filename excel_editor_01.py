@@ -178,9 +178,17 @@ def read_excel_file():
           
     else:
 
-        notify_user("ファイルが選択されませんでした")
+        if tkinter.messagebox.askyesno("エラー", "ファイルが選択されてないよ！今ここで選択する？"):
+            # ファイルダイアログを表示してファイルパスを取得
+            file_path = tkinter.filedialog.askopenfilename(
+                title="Excelファイルを選択してください",
+                filetypes=[("Excel files", "*.xlsx *.xlsm")]
+            )
+            read_excel_file();
+        else:
+            tkinter.messagebox.showinfo("終了", "ファイルが選択されませんでした");
+            print("ファイルが選択されませんでした");
 
-        print("ファイルが選択されませんでした");
 
 def edit_excel_file_mass():
     global wb;
