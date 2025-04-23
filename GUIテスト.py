@@ -6,6 +6,7 @@ import os
 
 #------------------.pyimport------------------
 import CSVtoxlsx04
+import excel_editor_01
 
 #---------------------------------------------
 
@@ -39,6 +40,10 @@ def process_file():
     run_processing()
 ))
     thread.start()
+    thread.join()  # ← メインスレッドが終了するまで待機（必要に応じて）これつけると不具合でるなあ
+
+    excel_editor_01.read_excel_file(path=excel_editor_01.return_xlsx_file_path())  # ← Excelファイルを開く
+
 
 def show_encoding_on_gui(enc):
     encode_label.config(text=f"✅ 検出された文字コード：{enc}")

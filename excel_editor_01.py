@@ -21,11 +21,14 @@ import chardet
 import os
 import tkinter.filedialog
 
-def csv_to_excel_with_pandas():
+def csv_to_excel_with_pandas(path=None):
     #global wb;
     #global sheet_names;
     #global ws;
     global file_path;
+    
+    file_path = path;    # グローバル変数にファイルパスを格納
+
 
     # ファイル選択
     csv_file_path = tkinter.filedialog.askopenfilename(

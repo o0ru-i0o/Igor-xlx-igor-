@@ -138,6 +138,9 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
 
         dname = os.path.dirname(excel_file_path);
         fname = os.path.basename(excel_file_path);
+
+        if not os.path.exists(dname + "/output"):
+            os.makedirs(dname + "/output")        
         excel_file_path = dname + "/output/cleaned_" + fname;
 
 
