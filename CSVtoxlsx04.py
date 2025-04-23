@@ -40,7 +40,7 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
             if notify_encoding:
                 notify_encoding(detected_encoding)  # ← GUI側に通知！
             if progress_callback:
-                progress_callback(10)
+                progress_callback(15)
     except Exception as e:
         print("❌ 文字コード検出エラー：", e)
         tb = traceback.extract_tb(e.__traceback__)
@@ -59,7 +59,7 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
             lines = [line.replace('"', '') for line in f]
 
             if progress_callback:
-                progress_callback(20)
+                progress_callback(18)
     except Exception as e:
         print("❌ 文字コード検出エラー：", e)
         tb = traceback.extract_tb(e.__traceback__)
@@ -89,8 +89,8 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
 
         #print(lines)
 
-        if progress_callback:
-            progress_callback(30)
+    if progress_callback:
+        progress_callback(20)
 
     #df = pd.read_csv("cleaned_file.csv", encoding="utf-8")    
 
@@ -101,7 +101,8 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
     #最大列数を自動検出
     max_cols = detect_max_columns(csv_file_path_cleaned, detected_encoding)
     print(f"📏 最大列数は {max_cols} 列です！")    
-
+    if progress_callback:
+        progress_callback(25)
 
     # pandasで読み込んで → Excelに出力！
     print(f"{csv_file_path_cleaned}の読み込み中...");
@@ -123,33 +124,37 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
         )
 
         if progress_callback:
-            progress_callback(50)
+            progress_callback(30)
 
         # セルごとに safe_convert を適用！
         df = df.applymap(safe_convert)
         #print(f"{df[1:40]}");
 
         if progress_callback:
-            progress_callback(75)
+            progress_callback(33)
 
         # 拡張子を安全に置き換え
         filename_root, _ = os.path.splitext(csv_file_path)
         excel_file_path = filename_root + ".xlsx"
+        if progress_callback:
+            progress_callback(35)
+
 
         dname = os.path.dirname(excel_file_path);
         fname = os.path.basename(excel_file_path);
 
         if not os.path.exists(dname + "/output"):
-            os.makedirs(dname + "/output")        
+            os.makedirs(dname + "/output", exist_ok=True)        
         excel_file_path = dname + "/output/cleaned_" + fname;
 
 
-        if progress_callback:
-            progress_callback(100)
 
         file_path = excel_file_path;  # グローバル変数にファイルパスを格納
         df.to_excel(excel_file_path, index=False)
         print(f"✅ pandasで変換完了！: {excel_file_path}")
+
+        if progress_callback:
+            progress_callback(40)
 
         # _cleaned.csvファイルを削除
         if os.path.exists(csv_file_path_cleaned):   

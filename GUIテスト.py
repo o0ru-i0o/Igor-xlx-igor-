@@ -24,6 +24,7 @@ def choose_file():
         progress_label["text"] = "待機中..."
 
 def process_file():
+    global thread1; #スレッドが終了したかどうか別関数から確認するために必要
     if not selected_file_path:
         return
     progress["value"] = 5
@@ -35,14 +36,49 @@ def process_file():
     # 別スレッドで処理開始
         #CSV処理のため呼び出し,進捗バーの更新のため呼び出し
 
-    thread = threading.Thread(target=lambda: (
-    CSVtoxlsx04.csv_to_excel_with_pandas_with_argument(selected_file_path, notify_encoding=show_encoding_on_gui,progress_callback=update_progress),
-    run_processing()
-))
-    thread.start()
-    thread.join()  # ← メインスレッドが終了するまで待機（必要に応じて）これつけると不具合でるなあ
+    thread1 = threading.Thread   (target=lambda: (
+                                CSVtoxlsx04.csv_to_excel_with_pandas_with_argument(selected_file_path, notify_encoding=show_encoding_on_gui,progress_callback=update_progress),
+                                run_processing()
+                                ))
+    thread1.start()
+    #thread.join()  
+    #join()は完全にブロッキングなの！
+    #つまり「スレッドが終わるまでPythonの処理が完全停止しちゃう」！
+    #TkinterみたいなGUIではメインループ（mainloop()）が止まるとGUIも固まるから、
+    #→ 「フリーズした！」って見えるってわけ！
+    check_thread_then_start_thread2()  # スレッドが終了したら次の処理を開始
+    
+    #excel_editor_01.read_excel_file(path=excel_editor_01.return_xlsx_file_path())  # ← Excelファイルを開く
 
-    excel_editor_01.read_excel_file(path=excel_editor_01.return_xlsx_file_path())  # ← Excelファイルを開く
+def check_thread_then_start_thread2():
+    global thread1; #スレッドが終了したかどうか別関数から確認するために必要
+
+    if thread1.is_alive():   #thread=宣言してから使ってね！
+        root.after(100, check_thread_then_start_thread2) # 100ms後に再チェック
+    else:
+        print("スレッドが終了しました！(もしくは、スレッドが無いかも...)")
+        start_thread2()  # スレッドが終了したら次の処理を開始
+
+def start_thread2():
+    global thread2; #スレッドが終了したかどうか別関数から確認するために必要
+    xlsx_path = CSVtoxlsx04.return_xlsx_file_path()
+    thread2 = threading.Thread  (target=lambda:(
+                                excel_editor_01.xlsx_to_csv_to_igor_integrated(path=xlsx_path, progress_callback=update_progress), # ← Excelファイルを開く
+                                run_processing()
+                                ))  
+    thread2.start()
+
+"""
+def check_thread_then_start_thread3():
+    global thread2; #スレッドが終了したかどうか別関数から確認するために必要
+
+    if thread2.is_alive():   #thread=宣言してから使ってね！
+        root.after(100, check_thread_then_start_thread3) # 100ms後に再チェック
+    else:
+        print("スレッドが終了しました！(もしくは、スレッドが無いかも...)")
+        start_thread3()  # スレッドが終了したら次の処理を開始
+"""
+
 
 
 def show_encoding_on_gui(enc):
