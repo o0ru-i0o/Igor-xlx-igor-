@@ -8,13 +8,16 @@ import csv
 
 import re
 
+from tkinter import messagebox
+import traceback
+
 #グローバル変数の定義
 wb = None;
 sheet_names = None;
 ws = None;
 file_path = None;
 mass_number = None;
-
+csv_file_path_with_collon = None;
 
 import pandas
 import chardet
@@ -196,7 +199,6 @@ def read_excel_file(path=None, progress_callback=None):
             tkinter.messagebox.showinfo("終了", "ファイルが選択されませんでした");
             print("ファイルが選択されませんでした");
 
-
 def edit_excel_file_mass(progress_callback=None):
     global wb;
     global sheet_names;
@@ -254,8 +256,6 @@ def edit_excel_file_mass(progress_callback=None):
         ws.cell(row=1, column=i+2).value = "m=" + str(mass_number_excerpted[i]);    # 1行目に質量数を追加
     ws.delete_cols(len(mass_number_excerpted)+2, ws.max_column);
 
-
-
 def save_excel_file():
     global wb;
     global sheet_names;
@@ -275,8 +275,6 @@ def save_excel_file():
 
     else:
         print("Excelファイルが読み込まれていません。先にread_excel_file()を実行してください。");
-
-
 
 def excel_to_csv():
     global wb;
@@ -311,7 +309,6 @@ def copy_command_for_Igor():
     #pyperclip.copy('LoadWave/J/D/W/A/E=1/K=0 "D:DQM:学習:openpyxl:インスト:pythonOpenpyxlのまとめ:SelfCreate:Igor提携:output:edited_S1_241017_221354.csv"');
     pyperclip.copy(f'LoadWave/J/D/W/A/E=1/K=0 "{csv_file_path_with_collon}"');
 
-
 def notify_user(message):
     import tkinter as tk
     from tkinter import messagebox
@@ -322,188 +319,217 @@ def notify_user(message):
     messagebox.showinfo('メッセージ', message, parent=root)
     root.destroy()
 
+def xlsx_to_csv_to_igor_integrated(path=None, progress_callback=None, add_label_on_gui_callback=None):
+    try:    
+        global wb;
+        global sheet_names;
+        global ws;
+        global file_path;
+        global mass_number;
+        global csv_file_path_with_collon;
 
-def xlsx_to_csv_to_igor_integrated(path=None, progress_callback=None):
-    global wb;
-    global sheet_names;
-    global ws;
-    global file_path;
-    global mass_number;
+        #-----------------.xlsxファイルの読み込み-----------------
+        file_path = path;    # グローバル変数にファイルパスを格納
+        """
+        # ファイルダイアログを表示してファイルパスを取得
+        file_path = tkinter.filedialog.askopenfilename(
+            title="Excelファイルを選択してください",
+            filetypes=[("Excel files", "*.xlsx *.xlsm")]
+        )
+        """
 
-    #-----------------.xlsxファイルの読み込み-----------------
-    file_path = path;    # グローバル変数にファイルパスを格納
-    """
-    # ファイルダイアログを表示してファイルパスを取得
-    file_path = tkinter.filedialog.askopenfilename(
-        title="Excelファイルを選択してください",
-        filetypes=[("Excel files", "*.xlsx *.xlsm")]
-    )
-    """
+        # ファイルが選択された場合のみ処理
+        if file_path:
+            # Excelファイルを読み込む
+            wb = openpyxl.load_workbook(file_path);
 
-    # ファイルが選択された場合のみ処理
-    if file_path:
-        # Excelファイルを読み込む
-        wb = openpyxl.load_workbook(file_path);
-
-        sheet_names = wb.sheetnames;    # シート名のリストを取得
-        
-        #notify_user(f"{str(file_path)}'\n を読み込みます")
-        print(f"選択されたファイル：{file_path}");    # 選択されたファイル名を表示
+            sheet_names = wb.sheetnames;    # シート名のリストを取得
             
-        if progress_callback:
-            progress_callback(50)
+            #notify_user(f"{str(file_path)}'\n を読み込みます")
+            #print(f"選択されたファイル：{file_path}");    # 選択されたファイル名を表示
+                
+            if progress_callback:
+                progress_callback(50)
 
 
-        for i, sheet_name in enumerate(sheet_names):
-            ws = wb[sheet_name];    # シートを取得
-            print(f"{i+1}番目のシート名：{sheet_name}");    # シート名を表示
-            print("先頭セルの値：", ws.cell(row=1, column=1).value)
-            print(f"最大行数：{ws.max_row}");    # A列の行数を表示
+            for i, sheet_name in enumerate(sheet_names):
+                ws = wb[sheet_name];    # シートを取得
+                print(f"{i+1}番目のシート名：{sheet_name}");    # シート名を表示
+                print("先頭セルの値：", ws.cell(row=1, column=1).value)
+                print(f"最大行数：{ws.max_row}");    # A列の行数を表示
 
-        if progress_callback:
-            progress_callback(55)
+            if progress_callback:
+                progress_callback(55)
 
-    else:
-
-        if tkinter.messagebox.askyesno("エラー", "ファイルが選択されてないよ！今ここで選択する？"):
-            # ファイルダイアログを表示してファイルパスを取得
-            file_path = tkinter.filedialog.askopenfilename(
-                title="Excelファイルを選択してください",
-                filetypes=[("Excel files", "*.xlsx *.xlsm")]
-            )
-            read_excel_file(file_path);
         else:
-            tkinter.messagebox.showinfo("終了", "ファイルが選択されませんでした");
-            print("ファイルが選択されませんでした");
 
-    #-----------------MASS整形-----------------
-    mass_number_row = 9;
-    header_end_row = 39;
+            if tkinter.messagebox.askyesno("エラー", "ファイルが選択されてないよ！今ここで選択する？"):
+                # ファイルダイアログを表示してファイルパスを取得
+                file_path = tkinter.filedialog.askopenfilename(
+                    title="Excelファイルを選択してください",
+                    filetypes=[("Excel files", "*.xlsx *.xlsm")]
+                )
+                read_excel_file(file_path);
+            else:
+                tkinter.messagebox.showinfo("終了", "ファイルが選択されませんでした");
+                print("ファイルが選択されませんでした");
 
-    
+        #-----------------MASS整形-----------------
+        mass_number_row = 9;
+        header_end_row = 39;
 
-    ws = wb[sheet_names[0]];
+        
 
-    col = ws["A"];    # A列を取得
-    for cell in col:
-        if cell.value == "測定質量数              : ":
-            mass_number_row = cell.row;    # 行番号を取得
-            print(f"質量数の行番号：{mass_number_row}");    # 行番号を表示
-        if cell.value == "測定回数":
-            header_end_row = cell.row;
-            print(f"ヘッダーの終了行番号：{header_end_row}");    # 行番号を表示 
-            break;    # ループを抜ける
+        ws = wb[sheet_names[0]];
 
-    if progress_callback:
-        progress_callback(60)
-    
-
-    mass_number = ws[mass_number_row];# ラベル行目を取得
-    print(type(mass_number));    # 取得した行の型を表示
-    #print(f"質量数：{mass_number}");
-
-
-    mass_number_listed = list(mass_number);    # セルの値を取得
-
-    #mass_number_edited = [i for i in mass_number if type(i) == int];    # int型だけ残す
-    print(mass_number_listed);    # int型の質量数を表示
-    print(type(mass_number_listed));
-    print(f"{mass_number_listed[0]=}");
-    print(f"{mass_number_listed[0].value=}");    # セルの値を表示
-
-    mass_number_excerpted = [cell.value for cell in mass_number_listed if type(cell.value) == int];
-    print(f"{mass_number_excerpted=}");    # int型の質量数を表示
-
-    ws.delete_rows(1, header_end_row);    # 1行目から39行目まで削除
-    if progress_callback:
-        progress_callback(63)
-    
-    ws.delete_cols(1,1);
-    if progress_callback:
-        progress_callback(66)
-
-    ws.delete_cols(2,4);
-    if progress_callback:
-        progress_callback(70)
-    
-    #i = 0;
-    for cell in ws["A"]:
-        cell.value = cell.value[1:12];    # A列の値をスライスして上書き
-        #i += 1;
-        #if progress_callback:#入れると進捗が遅くなるので入れなくていいや！
-        #    progress_callback(70 + i/len(ws["A"])*10)
-    if progress_callback:
-        progress_callback(80)
-
-    ws.insert_rows(1, 1);    # 1行目に1行追加
-
-    ws["A1"].value = "Elapsed Time (s)";
-    for i in range(len(mass_number_excerpted)):
-        ws.cell(row=1, column=i+2).value = "m=" + str(mass_number_excerpted[i]);    # 1行目に質量数を追加
-        #if progress_callback:#入れると進捗が遅くなるので入れなくていいや！
-        #    progress_callback(80 + i/len(mass_number_excerpted)*10)
-
-    ws.delete_cols(len(mass_number_excerpted)+2, ws.max_column);
-
-    if progress_callback:
-        progress_callback(90)
-
-
-    #-----------------.xlsxファイルとして保存-----------------
-    print("Excelファイルを保存します。");
-    if wb is not None:
-        dname = os.path.dirname(file_path);
-        fname = os.path.basename(file_path);
-        outputFilePath = dname + "/edited_" + fname; #.xlsx作成時(CSVtoxlsx04で作成済み)
-        #outputFilePath = dname + "/output/edited_" + fname;
-        print(f"出力ファイルパス：{outputFilePath}");
-        #os.makedirs(dname + "/output", exist_ok=True);    # 出力先のディレクトリを作成
-        wb.save(outputFilePath) # Excelファイルの保存
-        print(f"Excelファイルが保存されました：{outputFilePath}");
+        col = ws["A"];    # A列を取得
+        for cell in col:
+            if cell.value == "測定質量数              : ":
+                mass_number_row = cell.row;    # 行番号を取得
+                print(f"質量数の行番号：{mass_number_row}");    # 行番号を表示
+            if cell.value == "測定回数":
+                header_end_row = cell.row;
+                print(f"ヘッダーの終了行番号：{header_end_row}");    # 行番号を表示 
+                break;    # ループを抜ける
         if progress_callback:
-            progress_callback(93)
+            progress_callback(60)
+        
 
-    else:
-        print("Excelファイルが読み込まれていません。先にread_excel_file()を実行してください。");
-
-
-    #-----------------.xlsxを.csvへ変換-----------------
-    excel_file = outputFilePath;
-    #excel_file = os.path.dirname(file_path) + "/output/edited_" + os.path.basename(file_path)
-    csv_file = os.path.dirname(outputFilePath) +"/"+  os.path.basename(outputFilePath).replace('.xlsx', '.csv').replace('.xlsm', '.csv')
-
-    
-    # Excelファイルを読み込む
-    df = pandas.read_excel(excel_file)
-    if progress_callback:
-        progress_callback(96)
-    
-    
-    # CSVファイルに書き込む
-    df.to_csv(csv_file, index=False)
-    if progress_callback:
-        progress_callback(100)
+        mass_number = ws[mass_number_row];# ラベル行目を取得
+        #print(type(mass_number));    # 取得した行の型を表示
+        #print(f"質量数：{mass_number}");
 
 
+        mass_number_listed = list(mass_number);    # セルの値を取得
 
-    """
-    tkinter.Tk().withdraw()
-    tkinter.messagebox.showinfo('メッセージ', "読み込んだxlsxをCSVに変換しました！/n(「output」フォルダに保存されています)")
-    """
-    print("読み込んだxlsxをCSVに変換しました！ /n (「output」フォルダに保存されています)")
+        #mass_number_edited = [i for i in mass_number if type(i) == int];    # int型だけ残す
+        #print(mass_number_listed);    # int型の質量数を表示
+        #print(type(mass_number_listed));
+        #print(f"{mass_number_listed[0]=}");
+        #print(f"{mass_number_listed[0].value=}");    # セルの値を表示
 
-    print(f"出力ファイルパス：{csv_file}");
-    #-----------------Igorコマンドをクリップボードへ-----------------
-    csv_file_path_with_collon = csv_file
-    csv_file_path_with_collon = csv_file_path_with_collon.replace(":", "")
-    csv_file_path_with_collon = csv_file_path_with_collon.replace("/", ":")
-    """
-    csv_file_path_with_collon = os.path.dirname(file_path) + "/output/edited_" + os.path.basename(file_path).replace('.xlsx', '.csv').replace('.xlsm', '.csv')
-    csv_file_path_with_collon = csv_file_path_with_collon.replace(":", "")
-    csv_file_path_with_collon = csv_file_path_with_collon.replace("/", ":")
-    """
-    print(f"{csv_file_path_with_collon=}");
-    
-    # クリップボードにコピー
-    #pyperclip.copy('LoadWave/J/D/W/A/E=1/K=0 "D:DQM:学習:openpyxl:インスト:pythonOpenpyxlのまとめ:SelfCreate:Igor提携:output:edited_S1_241017_221354.csv"');
+        mass_number_excerpted = [cell.value for cell in mass_number_listed if type(cell.value) == int];
+        print(f"{mass_number_excerpted=}");    # int型の質量数を表示
+
+        ws.delete_rows(1, header_end_row);    # 1行目から39行目まで削除
+        if progress_callback:
+            progress_callback(63)
+        
+        ws.delete_cols(1,1);
+        if progress_callback:
+            progress_callback(66)
+
+        ws.delete_cols(2,4);
+        if progress_callback:
+            progress_callback(70)
+        if add_label_on_gui_callback:
+            add_label_on_gui_callback(f"✅ファイル整形")  
+        
+        #i = 0;
+        for cell in ws["A"]:
+            cell.value = cell.value[1:12];    # A列の値をスライスして上書き
+            #i += 1;
+            #if progress_callback:#入れると進捗が遅くなるので入れなくていいや！
+            #    progress_callback(70 + i/len(ws["A"])*10)
+        if progress_callback:
+            progress_callback(80)
+
+        ws.insert_rows(1, 1);    # 1行目に1行追加
+
+        ws["A1"].value = "Elapsed Time (s)";
+        for i in range(len(mass_number_excerpted)):
+            ws.cell(row=1, column=i+2).value = "m=" + str(mass_number_excerpted[i]);    # 1行目に質量数を追加
+            #if progress_callback:#入れると進捗が遅くなるので入れなくていいや！
+            #    progress_callback(80 + i/len(mass_number_excerpted)*10)
+
+
+        ws.delete_cols(len(mass_number_excerpted)+2, ws.max_column);
+
+        if progress_callback:
+            progress_callback(90)
+
+
+        #-----------------.xlsxファイルとして保存-----------------
+        print("Excelファイルを保存します。");
+        if wb is not None:
+            dname = os.path.dirname(file_path);
+            fname = os.path.basename(file_path);
+            outputFilePath = dname + "/edited_" + fname; #.xlsx作成時(CSVtoxlsx04で作成済み)
+            #outputFilePath = dname + "/output/edited_" + fname;
+            print(f"出力ファイルパス：{outputFilePath}");
+            #os.makedirs(dname + "/output", exist_ok=True);    # 出力先のディレクトリを作成
+            wb.save(outputFilePath) # Excelファイルの保存
+            print(f"Excelファイルが保存されました：{outputFilePath}");
+            if progress_callback:
+                progress_callback(93)
+
+        else:
+            print("Excelファイルが読み込まれていません。先にread_excel_file()を実行してください。");
+
+
+        #-----------------.xlsxを.csvへ変換-----------------
+        excel_file = outputFilePath;
+        file_path = excel_file;    # グローバル変数にファイルパスを格納
+        #excel_file = os.path.dirname(file_path) + "/output/edited_" + os.path.basename(file_path)
+        csv_file = os.path.dirname(outputFilePath) +"/"+  os.path.basename(outputFilePath).replace('.xlsx', '.csv').replace('.xlsm', '.csv')
+
+        
+        # Excelファイルを読み込む
+        df = pandas.read_excel(excel_file)
+        if progress_callback:
+            progress_callback(96)
+        
+        
+        # CSVファイルに書き込む
+        df.to_csv(csv_file, index=False)
+        if progress_callback:
+            progress_callback(100)
+
+
+
+        """
+        tkinter.Tk().withdraw()
+        tkinter.messagebox.showinfo('メッセージ', "読み込んだxlsxをCSVに変換しました！/n(「output」フォルダに保存されています)")
+        """
+        print("読み込んだxlsxをCSVに変換しました！ /n (「output」フォルダに保存されています)")
+
+        print(f"出力ファイルパス：{csv_file}");
+        if add_label_on_gui_callback:
+            add_label_on_gui_callback(f"✅CSV変換")  
+
+        #-----------------Igorコマンドをクリップボードへ-----------------
+        csv_file_path_with_collon = csv_file
+        csv_file_path_with_collon = csv_file_path_with_collon.replace(":", "")
+        csv_file_path_with_collon = csv_file_path_with_collon.replace("/", ":")
+        """
+        csv_file_path_with_collon = os.path.dirname(file_path) + "/output/edited_" + os.path.basename(file_path).replace('.xlsx', '.csv').replace('.xlsm', '.csv')
+        csv_file_path_with_collon = csv_file_path_with_collon.replace(":", "")
+        csv_file_path_with_collon = csv_file_path_with_collon.replace("/", ":")
+        """
+        print(f"{csv_file_path_with_collon=}");
+        
+        # クリップボードにコピー
+        #pyperclip.copy('LoadWave/J/D/W/A/E=1/K=0 "D:DQM:学習:openpyxl:インスト:pythonOpenpyxlのまとめ:SelfCreate:Igor提携:output:edited_S1_241017_221354.csv"');
+        pyperclip.copy(f'LoadWave/J/D/W/A/E=1/K=0 "{csv_file_path_with_collon}"');
+    except Exception as e:
+        print("❌ excel_editor_01 エラー：", e)
+        tb = traceback.extract_tb(e.__traceback__)
+        last_trace = tb[-1]  # 最後のトレース（エラーが起きた場所）
+        line_number = last_trace.lineno
+        filename = last_trace.filename
+        error_message = f"💥 不具合が起きたようです...以下の内容を小松路易に伝えてください:\n \n{e=}\n \n📄 ファイル: {filename}\n📍 行番号: {line_number}"
+        messagebox.showerror("エラー発生！", error_message)
+        return
+
+def return_finalCSV_file_path():
+    global file_path;
+    os.path.basename(file_path)
+    #tkinter.messagebox.showinfo('メッセージ', "return_xlsx_file_path");
+    #print(file_path);
+    return os.path.basename(file_path), os.path.dirname(file_path), file_path; # 返り値はファイル名とディレクトリ名,タプルで返す
+
+def copy_to_clipboard():
+    global csv_file_path_with_collon;
+    #tkinter.messagebox.showinfo('メッセージ', "return_xlsx_file_path");
+    #print(file_path);
     pyperclip.copy(f'LoadWave/J/D/W/A/E=1/K=0 "{csv_file_path_with_collon}"');

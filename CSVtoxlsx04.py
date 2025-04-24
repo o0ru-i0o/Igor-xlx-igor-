@@ -12,7 +12,7 @@ import traceback
 file_path = None  # グローバル変数にファイルパスを格納
 
 #対象ファイルのパス，検出した文字コードをGUIに返す，進捗バーをGUIに返す
-def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_callback=None):
+def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_callback=None, add_label_on_gui_callback=None):
     global file_path;
     #tkinter.messagebox.showinfo('メッセージ', "csv_to_excel_with_pandas_with_argument" + str(path));
 
@@ -34,7 +34,7 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
             raw_data = f.read()
             result = chardet.detect(raw_data)
             detected_encoding = result['encoding']
-            print(f"✅ 検出された文字コード：{detected_encoding}")
+            print(f"✅検出された文字コード：{detected_encoding}")
             #GUIテスト.encord_label.config(text="✅ 検出された文字コード：" + detected_encoding)
             #notify_user(f"検出された文字コード：{detected_encoding}")
             if notify_encoding:
@@ -57,11 +57,12 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
     try:
         with open(csv_file_path, "r", encoding=detected_encoding) as f:
             lines = [line.replace('"', '') for line in f]
-
+            if add_label_on_gui_callback:
+                add_label_on_gui_callback(f"✅引用符除去")  # ← GUI側に通知！;
             if progress_callback:
                 progress_callback(18)
     except Exception as e:
-        print("❌ 文字コード検出エラー：", e)
+        print("❌ 引用符除去エラー：", e)
         tb = traceback.extract_tb(e.__traceback__)
         last_trace = tb[-1]  # 最後のトレース（エラーが起きた場所）
         line_number = last_trace.lineno
@@ -100,7 +101,14 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
 
     #最大列数を自動検出
     max_cols = detect_max_columns(csv_file_path_cleaned, detected_encoding)
-    print(f"📏 最大列数は {max_cols} 列です！")    
+    try:
+        max_rows = count_csv_lines_fast(csv_file_path_cleaned, detected_encoding)
+        print(f"📏 最大列数は {max_cols} 列です！")  
+        if add_label_on_gui_callback:
+            add_label_on_gui_callback(f"✅最大行数：{max_rows}") 
+    except Exception as e:
+        print("❌ 最大行数検出エラー：", e)
+        
     if progress_callback:
         progress_callback(25)
 
@@ -129,7 +137,8 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
         # セルごとに safe_convert を適用！
         df = df.applymap(safe_convert)
         #print(f"{df[1:40]}");
-
+        if add_label_on_gui_callback:
+            add_label_on_gui_callback(f"✅数値へ変換")  
         if progress_callback:
             progress_callback(33)
 
@@ -152,7 +161,8 @@ def csv_to_excel_with_pandas_with_argument(path, notify_encoding=None, progress_
         file_path = excel_file_path;  # グローバル変数にファイルパスを格納
         df.to_excel(excel_file_path, index=False)
         print(f"✅ pandasで変換完了！: {excel_file_path}")
-
+        if add_label_on_gui_callback:
+            add_label_on_gui_callback(f"✅Excelファイルへ一時変換")        
         if progress_callback:
             progress_callback(40)
 
