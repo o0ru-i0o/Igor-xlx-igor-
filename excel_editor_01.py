@@ -398,6 +398,8 @@ def xlsx_to_csv_to_igor_integrated(path=None, progress_callback=None, add_label_
         mass_number = ws[mass_number_row];# ラベル行目を取得
         #print(type(mass_number));    # 取得した行の型を表示
         #print(f"質量数：{mass_number}");
+            
+         
 
 
         mass_number_listed = list(mass_number);    # セルの値を取得
@@ -436,14 +438,21 @@ def xlsx_to_csv_to_igor_integrated(path=None, progress_callback=None, add_label_
 
         ws.insert_rows(1, 1);    # 1行目に1行追加
 
+        if mass_number_listed[20].value ==10:
+            print("最終列がm=10");
+            ws.delete_cols(22, ws.max_column);       
+            ws.delete_cols(len(mass_number_excerpted)+1, 10);
+        else:
+            ws.delete_cols(len(mass_number_excerpted)+2, ws.max_column);
+        
+
         ws["A1"].value = "Elapsed Time (s)";
+
         for i in range(len(mass_number_excerpted)):
             ws.cell(row=1, column=i+2).value = "m=" + str(mass_number_excerpted[i]);    # 1行目に質量数を追加
             #if progress_callback:#入れると進捗が遅くなるので入れなくていいや！
             #    progress_callback(80 + i/len(mass_number_excerpted)*10)
 
-
-        ws.delete_cols(len(mass_number_excerpted)+2, ws.max_column);
 
         if progress_callback:
             progress_callback(90)
