@@ -327,6 +327,8 @@ def xlsx_to_csv_to_igor_integrated(path=None, progress_callback=None, add_label_
         global file_path;
         global mass_number;
         global csv_file_path_with_collon;
+        global date;
+        global mass_number_excerpted;
 
         #-----------------.xlsxファイルの読み込み-----------------
         file_path = path;    # グローバル変数にファイルパスを格納
@@ -377,6 +379,7 @@ def xlsx_to_csv_to_igor_integrated(path=None, progress_callback=None, add_label_
         #-----------------MASS整形-----------------
         mass_number_row = 9;
         header_end_row = 39;
+        date_row = 31;
 
         
 
@@ -387,6 +390,9 @@ def xlsx_to_csv_to_igor_integrated(path=None, progress_callback=None, add_label_
             if cell.value == "測定質量数              : ":
                 mass_number_row = cell.row;    # 行番号を取得
                 print(f"質量数の行番号：{mass_number_row}");    # 行番号を表示
+            if cell.value == "測定開始日時            : ":
+                date_row = cell.row;
+                print(f"測定開始日時の行番号：{date_row}");    # 行番号を表示
             if cell.value == "測定回数":
                 header_end_row = cell.row;
                 print(f"ヘッダーの終了行番号：{header_end_row}");    # 行番号を表示 
@@ -394,6 +400,10 @@ def xlsx_to_csv_to_igor_integrated(path=None, progress_callback=None, add_label_
         if progress_callback:
             progress_callback(60)
         
+        date_n_time = ws.cell(row=date_row, column=2).value;# 測定開始日時を取得
+        date = (date_n_time.split()[0]).replace("/","");# 日付を取得
+        print(f"測定開始日時：{date}");    # 測定開始日時を表示
+
 
         mass_number = ws[mass_number_row];# ラベル行目を取得
         #print(type(mass_number));    # 取得した行の型を表示
@@ -445,15 +455,15 @@ def xlsx_to_csv_to_igor_integrated(path=None, progress_callback=None, add_label_
             #test_row_excerpted = [cell.value for cell in test_row_listed];
             #print(f"{test_row_excerpted=}");    
             ws.delete_cols(idx=22, amount=ws.max_column);  #引数に注意！最初と最後じゃないよ！
-            ws.delete_cols(idx=len(mass_number_excerpted)+1, amount=8);
+            ws.delete_cols(idx=len(mass_number_excerpted)+1, amount=21-len(mass_number_excerpted)-1);  #引数に注意！最初と最後じゃないよ！
         else:
             ws.delete_cols(idx=len(mass_number_excerpted)+2, amount=ws.max_column);
         
 
-        ws["A1"].value = "Elapsed Time (s)";
+        ws["A1"].value = "Elapsed Time (s)"+ "_" + str(date);
 
         for i in range(len(mass_number_excerpted)):
-            ws.cell(row=1, column=i+2).value = "m=" + str(mass_number_excerpted[i]);    # 1行目に質量数を追加
+            ws.cell(row=1, column=i+2).value = "m=" + str(mass_number_excerpted[i]) + "_" + str(date);    # 1行目に質量数を追加
             #if progress_callback:#入れると進捗が遅くなるので入れなくていいや！
             #    progress_callback(80 + i/len(mass_number_excerpted)*10)
 
@@ -543,6 +553,34 @@ def return_finalCSV_file_path():
 
 def copy_to_clipboard():
     global csv_file_path_with_collon;
-    #tkinter.messagebox.showinfo('メッセージ', "return_xlsx_file_path");
-    #print(file_path);
-    pyperclip.copy(f'LoadWave/J/D/W/A/E=1/K=0 "{csv_file_path_with_collon}"');
+    global date;
+    global mass_number_excerpted;
+
+    #グラフへプロットするコマンド作成
+    Display_Wave_Command = " ";
+    for i in range(len(mass_number_excerpted)):
+        Display_Wave_Command += f"m_{mass_number_excerpted[i]}_{date}, ";      #f-stringでやる場合
+    Display_Wave_Command += 'vs Elapsed_Time__s__' + str(date) + ' as "mass_' + str(date) + '"'; #普通にやる場合
+    print(f"{Display_Wave_Command=}");
+
+    #線の色を指定するコマンド作成
+    try:
+        wb = openpyxl.load_workbook("個人用設定.xlsx");    # 個人用設定.xlsxを読み込む
+        ws = wb["TraceColor"];    # TraceColorを取得
+
+    
+
+        col = ws["A"];    # A列を取得
+
+    except Exception as e:
+        print("❌ excel_editor_01 エラー：", e)
+        tb = traceback.extract_tb(e.__traceback__)
+        last_trace = tb[-1]
+        return
+    
+    Trace_Color_Command = "";
+    for i in range(len(mass_number_excerpted)):
+        Trace_Color_Command += f"•ModifyGraph rgb(m_{mass_number_excerpted[i]}_{date})=({_})";
+
+    #f-string内で改行するときは、\n使ってね！Igorでも反映されるよ！
+    pyperclip.copy(f'LoadWave/J/D/W/A/E=1/K=0 "{csv_file_path_with_collon}"\n//◆◆◆◆◆◆◆◆◆◆◆◆グラフへプロット◆◆◆◆◆◆◆◆◆◆◆◆\n•Display {Display_Wave_Command}\n');
