@@ -440,10 +440,14 @@ def xlsx_to_csv_to_igor_integrated(path=None, progress_callback=None, add_label_
 
         if mass_number_listed[20].value ==10:
             print("最終列がm=10");
-            ws.delete_cols(22, ws.max_column);       
-            ws.delete_cols(len(mass_number_excerpted)+1, 10);
+            
+            #test_row_listed = list(ws[40]);
+            #test_row_excerpted = [cell.value for cell in test_row_listed];
+            #print(f"{test_row_excerpted=}");    
+            ws.delete_cols(idx=22, amount=ws.max_column);  #引数に注意！最初と最後じゃないよ！
+            ws.delete_cols(idx=len(mass_number_excerpted)+1, amount=8);
         else:
-            ws.delete_cols(len(mass_number_excerpted)+2, ws.max_column);
+            ws.delete_cols(idx=len(mass_number_excerpted)+2, amount=ws.max_column);
         
 
         ws["A1"].value = "Elapsed Time (s)";
