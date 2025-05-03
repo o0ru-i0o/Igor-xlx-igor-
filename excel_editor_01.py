@@ -7,6 +7,7 @@ import pyperclip
 import csv
 
 import re
+import sys
 
 from tkinter import messagebox
 import traceback
@@ -556,31 +557,81 @@ def copy_to_clipboard():
     global date;
     global mass_number_excerpted;
 
-    #グラフへプロットするコマンド作成
+    #グラフへプロットするコマンド作成----------------------------------------------------
     Display_Wave_Command = " ";
-    for i in range(len(mass_number_excerpted)):
-        Display_Wave_Command += f"m_{mass_number_excerpted[i]}_{date}, ";      #f-stringでやる場合
-    Display_Wave_Command += 'vs Elapsed_Time__s__' + str(date) + ' as "mass_' + str(date) + '"'; #普通にやる場合
-    print(f"{Display_Wave_Command=}");
-
-    #線の色を指定するコマンド作成
     try:
-        wb = openpyxl.load_workbook("個人用設定.xlsx");    # 個人用設定.xlsxを読み込む
+        for i in range(len(mass_number_excerpted)):
+            Display_Wave_Command += f"m_{mass_number_excerpted[i]}_{date}, ";      #f-stringでやる場合
+        Display_Wave_Command += 'vs Elapsed_Time__s__' + str(date) + ' as "mass_' + str(date) + '"'; #普通にやる場合
+        print(f"{Display_Wave_Command=}");
+    except Exception as e:
+        print("❌ excel_editor_01 エラー：", e)
+        tb = traceback.extract_tb(e.__traceback__)
+        last_trace = tb[-1]
+        return
+
+
+    #線の色・Table文字色を指定するコマンド作成-----------------------------------------------------
+    Trace_Color_Command = "";
+    try:
+        excel_path = resource_path('個人用設定.xlsx');    # 個人用設定.xlsxのパスを取得
+        wb = openpyxl.load_workbook(f'{excel_path}', data_only=True);    # 個人用設定.xlsxを読み込む 関数が合った場合は、data_only=Trueを指定して、計算結果のみを取得する
         ws = wb["TraceColor"];    # TraceColorを取得
 
+
+        #↓だとlist(Trace_Color_Settings_mz)=[(1,), (2,), (3,)]になっちゃう
+        #Trace_Color_Settings_mz = ws.iter_rows(min_row=2, max_row=max_row, max_col=1, values_only=True);
+        Trace_Color_Settings_mz = ws["A"];    # TraceColorシートのA列を取得
+        Trace_Color_Settings_mz_list = [cell.value for cell in Trace_Color_Settings_mz if type(cell.value) == int]; #数値だけ抽出してリストに格納
+
+        Trace_Color_Settings_Color = ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=2, max_col=4, values_only=True);   # TraceColorシートの色パラメータの範囲を取得
+        Trace_Color_Settings_Color_tuple = tuple(Trace_Color_Settings_Color);    # タプルに変換
+        #print(f'{Trace_Color_Settings_Color_tuple=}');
+
+        #Trace_Color_Settings_dict
+        #print(f'{Trace_Color_Settings_dict=}');
+
+        #これだと上手くいかないなぁ
+        #Trace_Color_Settings_dict = dict(zip(Trace_Color_Settings_mz_list, Trace_Color_Settings_Color));    # Trace_Color_Settingsを辞書に変換
+
+        Trace_Color_Settings_dict = {mz:color for mz, color in zip(Trace_Color_Settings_mz_list, Trace_Color_Settings_Color_tuple) };    # 辞書に変換
+
+        #print((Trace_Color_Settings_dict));
+
+        #print(f'{Trace_Color_Settings_dict[1]=}');
+        #print(f'{Trace_Color_Settings_dict[1][0]=}');
+        for i in range(len(mass_number_excerpted)):
+            Trace_Color_Command += f"•ModifyGraph rgb(m_{mass_number_excerpted[i]}_{date})={Trace_Color_Settings_dict[mass_number_excerpted[i]]};\n";
+            Trace_Color_Command += f"•ModifyTable rgb(m_{mass_number_excerpted[i]}_{date})={Trace_Color_Settings_dict[mass_number_excerpted[i]]};\n";
+
     
-
-        col = ws["A"];    # A列を取得
-
     except Exception as e:
         print("❌ excel_editor_01 エラー：", e)
         tb = traceback.extract_tb(e.__traceback__)
         last_trace = tb[-1]
         return
     
-    Trace_Color_Command = "";
-    for i in range(len(mass_number_excerpted)):
-        Trace_Color_Command += f"•ModifyGraph rgb(m_{mass_number_excerpted[i]}_{date})=({_})";
+    #Wave名・Wave表示名を指定するコマンド作成-----------------------------------------------------
+    Wave_Rename_and_Retitle_Command = "";
+    try:
+        for i in range(len(mass_number_excerpted)):
+            Wave_Rename_and_Retitle_Command += f'•ModifyTable title(m_{mass_number_excerpted[i]}_{date})="mz_{mass_number_excerpted[i]}_{date}";\n';
+            Wave_Rename_and_Retitle_Command += f"•Rename m_{mass_number_excerpted[i]}_{date}, mz_{mass_number_excerpted[i]}_{date};\n";
+        print(f"{Wave_Rename_and_Retitle_Command=}");
+    except Exception as e:
+        print("❌ excel_editor_01 エラー：", e)
+        tb = traceback.extract_tb(e.__traceback__)
+        last_trace = tb[-1]
+        return
 
     #f-string内で改行するときは、\n使ってね！Igorでも反映されるよ！
-    pyperclip.copy(f'LoadWave/J/D/W/A/E=1/K=0 "{csv_file_path_with_collon}"\n//◆◆◆◆◆◆◆◆◆◆◆◆グラフへプロット◆◆◆◆◆◆◆◆◆◆◆◆\n•Display {Display_Wave_Command}\n');
+    pyperclip.copy(f'//◆◆◆◆◆◆◆◆◆◆◆◆データ読み込み◆◆◆◆◆◆◆◆◆\nLoadWave/J/D/W/A/E=1/K=0 "{csv_file_path_with_collon}"\n•DoWindow/C/T mass_{date},"mass_{date}"\n//◆◆◆◆◆◆◆◆◆◆◆◆グラフへプロット◆◆◆◆◆◆◆◆◆◆◆◆\n//既存のグラフに追加したいなら Dispaly を AppendToGraph に書き換えてください.\n•Display {Display_Wave_Command}\n//◆◆◆◆◆◆◆◆◆◆◆◆LineColor変更◆◆◆◆◆◆◆◆◆◆\n{Trace_Color_Command}\n//◆◆◆◆◆◆◆◆◆◆◆◆LineSize変更◆◆◆◆◆◆◆◆◆◆◆\n•ModifyGraph lsize=1.5;\n//◆◆◆◆◆◆◆◆◆◆◆◆FontSize変更◆◆◆◆◆◆◆◆◆◆◆◆\n•ModifyGraph fSize=18;\n//◆◆◆◆◆◆◆◆◆◆◆◆Standoff,Mirror,FontSize◆◆◆◆◆◆◆\n•ModifyGraph tick=2,mirror=1,fSize=18,standoff=0;\n//◆◆◆◆◆◆◆◆◆◆◆◆Axis◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆\n•ModifyGraph log(left)=0;•ModifyGraph prescaleExp(left)=12;\n•ModifyGraph prescaleExp(bottom)=-3;\n•ModifyGraph prescaleExp(bottom)=-3;\n•ModifyGraph axisOnTop=1;\n•ModifyGraph dateInfo(bottom)={{1,0,2}};\nSetAxis/A=2/N=1 left;\n//◆◆◆◆◆◆◆◆◆◆◆◆AxisLabel◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆\n•Label left "\\Z24MASS signal intensity (pA)";\n•Label bottom "\\Z20Time (ks)";\n•ModifyGraph ZisZ=1;\n//◆◆◆◆◆◆◆◆◆◆◆◆Legend◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆\n•Legend/C/N=text0/F=0/B=1/M/LS=2;\n//--------------------Wave Rename&Retitle--------------------\n//任意の名称に変更することもできます．\n//•ModifyTable title(Wave名)="任意のWave表示名"	...WaveのTable上での表示名を変更します.例えばLegendやDatabrowserには影響しません.\n//•Rename 元のWave名,任意のWave名						...Waveの名前を根本から変更します.LegendやDatabrowserに影響します.アンダーバー以外の特殊な記号を名前に含める場合は,\'任意のWave名\'のようにシングルクオーテーションで囲んでください.\n{Wave_Rename_and_Retitle_Command}\n//手動でAxisのModeを "Date/Time" から "Linear" に変更してください.(これだけなぜかコマンドから制御できない...)');
+
+
+def resource_path(filename: str):
+    """PyInstaller対応：実行ファイルからのパスを解決する関数"""
+    if getattr(sys, 'frozen', False):  # .exeとして実行中なら
+        base_path = sys._MEIPASS       # PyInstallerの展開先フォルダ
+    else:
+        base_path = os.path.dirname(__file__)  # スクリプトとして実行中
+    return os.path.join(base_path, filename)

@@ -1,0 +1,73 @@
+
+
+//◆◆◆◆◆◆◆◆◆◆◆◆グラフへプロット◆◆◆◆◆◆◆◆◆◆◆◆
+•Display m_40_20250407,m_32_20250407,m_28_20250407,m_20_20250407,m_18_20250407,m_17_20250407,m_10_20250407,m_4_20250407,m_3_20250407,m_2_20250407 vs Elapsed_Time__s_ as "mass_{date}"
+
+#BACK↔FRONT
+
+
+を書くために
+
+Display_Wave_Name = " "
+
+for i in range(mass_number_excerpted):
+	Display_Wave_Name = Display_Wave_Name + "m_" + mass_number_excerpted[i] + "_" + date + ","
+
+
+Display_Wave_Name = Display_Wave_Name + ' vs Elapsed_Time__s_ as "mass_' + date + '"'
+
+//◆◆◆◆◆◆◆◆◆◆◆◆LineColor変更◆◆◆◆◆◆◆◆◆◆◆◆
+•ModifyGraph rgb(m_10)=(65535,65532,16385);
+
+1:=(65535,49151,49151)
+2:=(65535,0,0)
+3:=(65535,32768,58981)
+4:=(65535,0,52428)
+10:=(52428,52425,1)
+14:=(0,65535,0)
+15:=(40969,65535,16385)
+16:=(32768,54615,65535)
+17:=(3,52428,1)
+18:=(1,34817,52428)
+20:=(48059,48059,48059)
+22:=(36873,14755,58982)
+28:=(1,26214,0)
+32:=(1,12815,52428)
+40:=(0,0,0)
+44:=(56797,56797,56797)
+46:=(56797,56797,56797)
+
+を書くために
+for i in range(mass_number_excerpted):
+	
+
+//◆◆◆◆◆◆◆◆◆◆◆◆LineSize変更◆◆◆◆◆◆◆◆◆◆◆◆
+•ModifyGraph lsize=1.5;
+
+//◆◆◆◆◆◆◆◆◆◆◆◆FontSize変更◆◆◆◆◆◆◆◆◆◆◆◆
+•ModifyGraph fSize=18;
+
+//◆◆◆◆◆◆◆◆◆◆◆◆Standoff,Mirror,FontSize◆◆◆◆◆◆◆◆◆◆◆◆
+•ModifyGraph tick=2,mirror=1,fSize=18,standoff=0;
+
+//◆◆◆◆◆◆◆◆◆◆◆◆Axis◆◆◆◆◆◆◆◆◆◆◆◆
+•ModifyGraph log(left)=0;
+•ModifyGraph prescaleExp(left)=12;DelayUpdate
+•ModifyGraph prescaleExp(bottom)=-3;DelayUpdate
+•ModifyGraph axisOnTop=1;DelayUpdate
+
+//◆◆◆◆◆◆◆◆◆◆◆◆AxisLabel◆◆◆◆◆◆◆◆◆◆◆◆
+•Label left "\\Z24MASS signal intensity (pA)";DelayUpdate
+•Label bottom "\\Z20Time (ks)";DelayUpdate
+•ModifyGraph ZisZ=1
+
+
+//◆◆◆◆◆◆◆◆◆◆◆◆Legend◆◆◆◆◆◆◆◆◆◆◆◆
+•Legend/C/N=text0/F=0/B=1/M/A=MC/LS=2;DelayUpdate
+
+
+
+
+//Wave Rename&Retitle
+•ModifyTable title(m_2_20250407)="m/z=2_20250407"
+•Rename m_2_20250407,'m/z=2_20250407'
