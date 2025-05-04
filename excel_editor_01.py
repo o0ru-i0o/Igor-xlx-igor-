@@ -578,6 +578,7 @@ def copy_to_clipboard():
     Trace_Color_Command = "";
     try:
         excel_path = resource_path('個人用設定.xlsx');    # 個人用設定.xlsxのパスを取得
+        print(f"個人用設定.xlsxのパス：{excel_path}");
         wb = openpyxl.load_workbook(f'{excel_path}', data_only=True);    # 個人用設定.xlsxを読み込む 関数が合った場合は、data_only=Trueを指定して、計算結果のみを取得する
         ws = wb["TraceColor"];    # TraceColorを取得
 
@@ -632,9 +633,10 @@ def copy_to_clipboard():
 
 
 def resource_path(filename: str):
-    """PyInstaller対応：実行ファイルからのパスを解決する関数"""
-    if getattr(sys, 'frozen', False):  # .exeとして実行中なら
-        base_path = sys._MEIPASS       # PyInstallerの展開先フォルダ
+    """実行ファイルのあるフォルダを基準にしたファイルパスを返す関数"""
+    if getattr(sys, 'frozen', False):  # .exeで実行されてるとき
+        base_path = os.path.dirname(sys.executable)  # 実行ファイルのあるフォルダ！
+        print(f"実行ファイルのあるフォルダ：{base_path}")
     else:
-        base_path = os.path.dirname(__file__)  # スクリプトとして実行中
+        base_path = os.path.dirname(__file__)  # スクリプト実行中
     return os.path.join(base_path, filename)
