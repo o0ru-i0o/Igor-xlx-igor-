@@ -69,6 +69,9 @@ Thumbs.db
 .spec
 .code-workspace
 
-リソース
-output
+リソース/
+output/
 Igor提携.code-workspace
+文字コードテスト/
+!リソース/AutoPlot.ipf
+!リソース/コマンド一時保存.txt
