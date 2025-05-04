@@ -1,3 +1,9 @@
+# ------------------------------------------------------------------------
+# This software is licensed under the RU-I Core License v1.0.
+# Qulee_2_Igor - Convert Qulee CSV to Igor Graph
+# See LICENSE file "RU-I_Core_License_v1.0.txt" or https://github.com/o0ru-i0o/Igor-xlx-igor-?tab=License-1-ov-file for more information.
+# ------------------------------------------------------------------------
+
 import tkinter.messagebox
 import pandas as pd
 import chardet

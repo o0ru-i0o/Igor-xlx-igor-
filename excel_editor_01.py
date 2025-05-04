@@ -1,3 +1,9 @@
+# ------------------------------------------------------------------------
+# This software is licensed under the RU-I Core License v1.0.
+# Qulee_2_Igor - Convert Qulee CSV to Igor Graph
+# See LICENSE file "RU-I_Core_License_v1.0.txt" or https://github.com/o0ru-i0o/Igor-xlx-igor-?tab=License-1-ov-file for more information.
+# ------------------------------------------------------------------------
+
 import openpyxl;
 import os;
 import os.path;
@@ -5,12 +11,14 @@ import tkinter;
 import tkinter.filedialog;
 import pyperclip
 import csv
-
 import re
 import sys
-
 from tkinter import messagebox
 import traceback
+import pandas
+import chardet
+import tkinter.filedialog
+
 
 #グローバル変数の定義
 wb = None;
@@ -19,11 +27,6 @@ ws = None;
 file_path = None;
 mass_number = None;
 csv_file_path_with_collon = None;
-
-import pandas
-import chardet
-import os
-import tkinter.filedialog
 
 def csv_to_excel_with_pandas(path=None):
     #global wb;
